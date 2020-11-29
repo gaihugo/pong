@@ -1,0 +1,12 @@
+{
+  "name": "pong",
+  "version": "1.0.0",
+  "description": "Game",
+  "author": "Gaiarimm and Tortek",
+  "license": "MIT",
+  "dependencies": {
+    "@rollup/plugin-node-resolve": "^10.0.0",
+    "rollup": "^2.34.0",
+    "three": "^0.123.0"
+  }
+}
