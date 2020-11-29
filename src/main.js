@@ -10,51 +10,77 @@ const TIPO_COLISAO = {
   BARRA: "barra",
 };
 
-function Object(name, x, y, w, h, color) {
-  const geometry = new THREE.BoxGeometry(w, h, 1);
-  const material = new THREE.MeshBasicMaterial({ color: color });
-  var cube = new THREE.Mesh(geometry, material);
-  cube.position.x = x;
-  cube.position.y = y;
-  return {
-    name,
-    cube,
-    move_by(dx, dy) {
-      if (
-        cube.position.x + dx + w / 2 > width / 2 ||
-        cube.position.x + dx - w / 2 < width / -2
-      ) {
-        this.onCollision(TIPO_COLISAO.VERTICAL);
-        return;
-      }
-      if (
-        cube.position.y + dy + h / 2 > height / 2 ||
-        cube.position.y + dy - h / 2 < height / -2
-      ) {
-        this.onCollision(TIPO_COLISAO.HORIZONTAL);
-        return;
-      }
+class Object {
+  constructor(name, x, y, w, h, color) {
+    const geometry = new THREE.BoxGeometry(w, h, 1);
+    const material = new THREE.MeshBasicMaterial({ color: color });
+    this.cube = new THREE.Mesh(geometry, material);
+    this.cube.position.x = x;
+    this.cube.position.y = y;
+    this.name = name;
+    this.w = w;
+    this.h = h;
+  }
 
-      cube.position.x += dx;
-      cube.position.y += dy;
-    },
-    add_scene(scene) {
-      scene.add(cube);
-    },
-    update() {},
-    onCollision(tipo_colisao) {
-      console.log("Colidiu com a", tipo_colisao);
-    },
-  };
+  move_by(dx, dy) {
+    if (
+      this.cube.position.x + dx + this.w / 2 > width / 2 ||
+      this.cube.position.x + dx - this.w / 2 < width / -2
+    ) {
+      this.onCollision(TIPO_COLISAO.VERTICAL);
+      return;
+    }
+    if (
+      this.cube.position.y + dy + this.h / 2 > height / 2 ||
+      this.cube.position.y + dy - this.h / 2 < height / -2
+    ) {
+      this.onCollision(TIPO_COLISAO.HORIZONTAL);
+      return;
+    }
+
+    this.cube.position.x += dx;
+    this.cube.position.y += dy;
+  }
+  add_scene(scene) {
+    scene.add(this.cube);
+  }
+  update() {}
+  onCollision(tipo_colisao) {
+    console.log(this.name, "Colidiu com a", tipo_colisao);
+  }
 }
 
-function Bola() {}
+class ObjectComFisica extends Object {
+  constructor(name, x, y, w, h, color, vx0, vy0) {
+    super(name, x, y, w, h, color);
+    this.vx = vx0;
+    this.vy = vy0;
+  }
+
+  update() {
+    super.update();
+    this.move_by(this.vx, this.vy);
+  }
+}
+
+class Bola extends ObjectComFisica {
+  update() {
+    super.update();
+  }
+
+  onCollision(tipo_colisao) {
+    if (tipo_colisao == TIPO_COLISAO.HORIZONTAL) {
+      this.vy *= -1;
+    }
+  }
+}
 
 const world = {
   scene: null,
   camera: null,
   renderer: null,
-  object: Object("Cubo", 0, 0, 1, 3, 0xe0d055),
+  object: new Object("Cubo", 0, 0, 1, 3, 0xe0d055),
+  ball: new Bola("Ball", 0, 0, 1, 1, 0xffffff, 0.003, -0.05),
 };
 
 // Inicializar as coisas (1 vez)
@@ -86,6 +112,7 @@ function init() {
 
 function initObjects() {
   world.object.add_scene(world.scene);
+  world.ball.add_scene(world.scene);
 }
 
 function animate() {
@@ -100,6 +127,7 @@ function animate() {
 
 function updateObjects() {
   world.object.update();
+  world.ball.update();
 }
 
 function handle_keys(event) {
