@@ -1,80 +1,13 @@
 import * as THREE from "three";
-const ASPECT_CORRECT = 80;
-const height = window.innerHeight / ASPECT_CORRECT;
-const width = window.innerWidth / ASPECT_CORRECT;
+import * as consts from "./consts";
+import Object from "./Object";
+import Bola from "./bola";
 
-const TIPO_COLISAO = {
-  HORIZONTAL: "hor",
-  VERTICAL: "ver",
-  BOLA: "bola",
-  BARRA: "barra",
-};
-
-class Object {
-  constructor(name, x, y, w, h, color) {
-    const geometry = new THREE.BoxGeometry(w, h, 1);
-    const material = new THREE.MeshBasicMaterial({ color: color });
-    this.cube = new THREE.Mesh(geometry, material);
-    this.cube.position.x = x;
-    this.cube.position.y = y;
-    this.name = name;
-    this.w = w;
-    this.h = h;
-  }
-
-  move_by(dx, dy) {
-    if (
-      this.cube.position.x + dx + this.w / 2 > width / 2 ||
-      this.cube.position.x + dx - this.w / 2 < width / -2
-    ) {
-      this.onCollision(TIPO_COLISAO.VERTICAL);
-      return;
-    }
-    if (
-      this.cube.position.y + dy + this.h / 2 > height / 2 ||
-      this.cube.position.y + dy - this.h / 2 < height / -2
-    ) {
-      this.onCollision(TIPO_COLISAO.HORIZONTAL);
-      return;
-    }
-
-    this.cube.position.x += dx;
-    this.cube.position.y += dy;
-  }
-  add_scene(scene) {
-    scene.add(this.cube);
-  }
-  update() {}
-  onCollision(tipo_colisao) {
-    console.log(this.name, "Colidiu com a", tipo_colisao);
-  }
+class World {
+  constructor() {}
 }
 
-class ObjectComFisica extends Object {
-  constructor(name, x, y, w, h, color, vx0, vy0) {
-    super(name, x, y, w, h, color);
-    this.vx = vx0;
-    this.vy = vy0;
-  }
-
-  update() {
-    super.update();
-    this.move_by(this.vx, this.vy);
-  }
-}
-
-class Bola extends ObjectComFisica {
-  update() {
-    super.update();
-  }
-
-  onCollision(tipo_colisao) {
-    if (tipo_colisao == TIPO_COLISAO.HORIZONTAL) {
-      this.vy *= -1;
-    }
-  }
-}
-
+// Inicializar as coisas (1 vez)
 const world = {
   scene: null,
   camera: null,
@@ -82,8 +15,6 @@ const world = {
   object: new Object("Cubo", 0, 0, 1, 3, 0xe0d055),
   ball: new Bola("Ball", 0, 0, 1, 1, 0xffffff, 0.003, -0.05),
 };
-
-// Inicializar as coisas (1 vez)
 init();
 // Animar as coisas (RECURSIVA)
 animate();
@@ -91,10 +22,10 @@ animate();
 function init() {
   world.scene = new THREE.Scene();
   world.camera = new THREE.OrthographicCamera(
-    width / -2,
-    width / 2,
-    height / 2,
-    height / -2,
+    consts.width / -2,
+    consts.width / 2,
+    consts.height / 2,
+    consts.height / -2,
     0.1,
     1000
   );
