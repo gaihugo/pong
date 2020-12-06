@@ -20,13 +20,15 @@ export var StateStack = function () {
   };
 
   this.push = function (state) {
+    this.pause();
     states.push(state);
     state.onEnter();
   };
   this.pop = function () {
     var state = states.top();
     state.onExit();
-    return states.pop();
+    states.pop();
+    this.resume();
   };
 
   this.pause = function () {

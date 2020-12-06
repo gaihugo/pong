@@ -28722,6 +28722,30 @@ Geometry.prototype = Object.assign( Object.create( EventDispatcher.prototype ), 
 
 } );
 
+class BoxGeometry extends Geometry {
+
+	constructor( width, height, depth, widthSegments, heightSegments, depthSegments ) {
+
+		super();
+
+		this.type = 'BoxGeometry';
+
+		this.parameters = {
+			width: width,
+			height: height,
+			depth: depth,
+			widthSegments: widthSegments,
+			heightSegments: heightSegments,
+			depthSegments: depthSegments
+		};
+
+		this.fromBufferGeometry( new BoxBufferGeometry( width, height, depth, widthSegments, heightSegments, depthSegments ) );
+		this.mergeVertices();
+
+	}
+
+}
+
 const _v0$2 = new Vector3();
 const _v1$5 = new Vector3();
 const _normal$1 = new Vector3();
@@ -44792,13 +44816,15 @@ var StateStack = function () {
   };
 
   this.push = function (state) {
+    this.pause();
     states.push(state);
     state.onEnter();
   };
   this.pop = function () {
     var state = states.top();
     state.onExit();
-    return states.pop();
+    states.pop();
+    this.resume();
   };
 
   this.pause = function () {
@@ -44816,12 +44842,98 @@ var StateStack = function () {
   };
 };
 
+const TIPO_COLISAO = {
+  HORIZONTAL: "hor",
+  VERTICAL: "ver",
+  BOLA: "bola",
+  BARRA: "barra",
+};
 const ASPECT_CORRECT = 80;
 const height = window.innerHeight / ASPECT_CORRECT;
 const width = window.innerWidth / ASPECT_CORRECT;
 
-// file: setup.js
+class Object$1 {
+  constructor(name, x, y, w, h, color) {
+    const geometry = new BoxGeometry(w, h, 1);
+    const material = new MeshBasicMaterial({ color: color });
+    this.cube = new Mesh(geometry, material);
+    this.cube.position.x = x;
+    this.cube.position.y = y;
+    this.name = name;
+    this.w = w;
+    this.h = h;
+  }
+
+  move_by(dx, dy) {
+    if (
+      this.cube.position.x + dx + this.w / 2 > width / 2 ||
+      this.cube.position.x + dx - this.w / 2 < width / -2
+    ) {
+      this.onCollision(TIPO_COLISAO.VERTICAL);
+      return;
+    }
+    if (
+      this.cube.position.y + dy + this.h / 2 > height / 2 ||
+      this.cube.position.y + dy - this.h / 2 < height / -2
+    ) {
+      this.onCollision(TIPO_COLISAO.HORIZONTAL);
+      return;
+    }
+
+    this.cube.position.x += dx;
+    this.cube.position.y += dy;
+  }
+  add_scene(scene) {
+    scene.add(this.cube);
+  }
+  update() {}
+  onCollision(tipo) {
+    console.log(this.name, "Colidiu com a", tipo);
+  }
+}
+
+class ObjectComFisica extends Object$1 {
+  constructor(name, x, y, w, h, color, vx0, vy0) {
+    super(name, x, y, w, h, color);
+    this.vx = vx0;
+    this.vy = vy0;
+  }
+
+  update() {
+    super.update();
+    this.move_by(this.vx, this.vy);
+  }
+}
+
+class Bola extends ObjectComFisica {
+  update() {
+    super.update();
+  }
+
+  onCollision(tipo) {
+    if (tipo == tipo) {
+      this.vy *= -1;
+    }
+  }
+}
+
 var MenuState = function () {
+  this.name = "Game State"; // Just to identify the State
+  this.update = function () {
+    this.ball.update();
+  };
+  this.render = function () {};
+  this.onEnter = function () {
+    window.onkeydown = function (e) {};
+    this.ball = new Bola("Ball", 0, 0, 1, 1, 0xffffff, 0.003, -0.05);
+    this.ball.add_scene(window.getScene());
+  };
+  this.onExit = function () {
+    window.onkeydown = null;
+  };
+};
+
+var MenuState$1 = function () {
   this.name = "Menu State"; // Just to identify the State
   this.update = function () {};
   this.render = function () {};
@@ -44829,12 +44941,17 @@ var MenuState = function () {
     document.getElementById("menu").hidden = false;
     window.onkeydown = function (e) {
       if (e.key == "Enter") {
-        window.getGameInstance().pop();
+        window.getGameInstance().push(new MenuState());
       }
       //console.log("Pressed: ", e.key);
     };
   };
   this.onExit = function () {
+    document.getElementById("menu").hidden = true;
+    window.onkeydown = null;
+  };
+
+  this.onPause = function () {
     document.getElementById("menu").hidden = true;
     window.onkeydown = null;
   };
@@ -44850,10 +44967,15 @@ var Game = {
   update: function () {
     this.gameMode.update();
     this.gameMode.render();
+    this.render();
+  },
+
+  render: function () {
+    this.renderer.render(this.scene, this.camera);
   },
 
   startGame: function () {
-    this.gameMode.push(new MenuState());
+    this.gameMode.push(new MenuState$1());
   },
 
   setupThree: function () {

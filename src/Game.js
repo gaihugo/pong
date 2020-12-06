@@ -13,6 +13,11 @@ var Game = {
   update: function () {
     this.gameMode.update();
     this.gameMode.render();
+    this.render();
+  },
+
+  render: function () {
+    this.renderer.render(this.scene, this.camera);
   },
 
   startGame: function () {
