@@ -1,85 +1,62 @@
 import * as THREE from "three";
-import * as consts from "./consts";
-import Object from "./Object";
-import Bola from "./bola";
+import Game from "./Game";
 
-class World {
-  constructor() {}
-}
+window.onload = function () {
+  window.getGameInstance = function () {
+    return Game.gameMode;
+  };
+  window.getScene = function () {
+    return Game.scene;
+  };
+  Game.init();
+};
 
 // Inicializar as coisas (1 vez)
-const world = {
-  scene: null,
-  camera: null,
-  renderer: null,
-  object: new Object("Cubo", 0, 0, 1, 3, 0xe0d055),
-  ball: new Bola("Ball", 0, 0, 1, 1, 0xffffff, 0.003, -0.05),
-};
-init();
-// Animar as coisas (RECURSIVA)
-animate();
 
-function init() {
-  world.scene = new THREE.Scene();
-  world.camera = new THREE.OrthographicCamera(
-    consts.width / -2,
-    consts.width / 2,
-    consts.height / 2,
-    consts.height / -2,
-    0.1,
-    1000
-  );
+// const world = {
+//   object: new Object("Cubo", 0, 0, 1, 3, 0xe0d055),
+//   ball: new Bola("Ball", 0, 0, 1, 1, 0xffffff, 0.003, -0.05),
+// };
 
-  world.camera.position.z = 5;
+// function initObjects() {
+//   world.object.add_scene(world.scene);
+//   world.ball.add_scene(world.scene);
+// }
 
-  document.onkeydown = handle_keys;
+// function animate() {
+//   requestAnimationFrame(animate);
 
-  initObjects();
+//   // world.object.cube.rotation.x += 0.01;
+//   // world.object.cube.rotation.z += 0.07;
+//   updateObjects();
 
-  world.renderer = new THREE.WebGLRenderer();
-  world.renderer.setSize(window.innerWidth, window.innerHeight);
-  document.body.appendChild(world.renderer.domElement);
-}
+//   world.renderer.render(world.scene, world.camera);
+// }
 
-function initObjects() {
-  world.object.add_scene(world.scene);
-  world.ball.add_scene(world.scene);
-}
+// function updateObjects() {
+//   world.object.update();
+//   world.ball.update();
+// }
 
-function animate() {
-  requestAnimationFrame(animate);
+// function handle_keys(event) {
+//   switch (event.key) {
+//     case "q":
+//       console.log("Q");
+//       break;
+//     case "ArrowUp":
+//       world.object.move_by(0, 0.1);
+//       break;
 
-  // world.object.cube.rotation.x += 0.01;
-  // world.object.cube.rotation.z += 0.07;
-  updateObjects();
+//     case "ArrowDown":
+//       world.object.move_by(0, -0.1);
+//       break;
 
-  world.renderer.render(world.scene, world.camera);
-}
+//     case "ArrowRight":
+//       world.object.move_by(0.1, 0);
+//       break;
 
-function updateObjects() {
-  world.object.update();
-  world.ball.update();
-}
-
-function handle_keys(event) {
-  switch (event.key) {
-    case "q":
-      console.log("Q");
-      break;
-    case "ArrowUp":
-      world.object.move_by(0, 0.1);
-      break;
-
-    case "ArrowDown":
-      world.object.move_by(0, -0.1);
-      break;
-
-    case "ArrowRight":
-      world.object.move_by(0.1, 0);
-      break;
-
-    case "ArrowLeft":
-      world.object.move_by(-0.1, 0);
-      break;
-  }
-}
+//     case "ArrowLeft":
+//       world.object.move_by(-0.1, 0);
+//       break;
+//   }
+// }

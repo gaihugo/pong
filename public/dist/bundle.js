@@ -28722,30 +28722,6 @@ Geometry.prototype = Object.assign( Object.create( EventDispatcher.prototype ), 
 
 } );
 
-class BoxGeometry extends Geometry {
-
-	constructor( width, height, depth, widthSegments, heightSegments, depthSegments ) {
-
-		super();
-
-		this.type = 'BoxGeometry';
-
-		this.parameters = {
-			width: width,
-			height: height,
-			depth: depth,
-			widthSegments: widthSegments,
-			heightSegments: heightSegments,
-			depthSegments: depthSegments
-		};
-
-		this.fromBufferGeometry( new BoxBufferGeometry( width, height, depth, widthSegments, heightSegments, depthSegments ) );
-		this.mergeVertices();
-
-	}
-
-}
-
 const _v0$2 = new Vector3();
 const _v1$5 = new Vector3();
 const _normal$1 = new Vector3();
@@ -44775,154 +44751,196 @@ if ( typeof __THREE_DEVTOOLS__ !== 'undefined' ) {
 
 }
 
-const TIPO_COLISAO = {
-  HORIZONTAL: "hor",
-  VERTICAL: "ver",
-  BOLA: "bola",
-  BARRA: "barra",
+var StateList = function () {
+  var states = [];
+
+  this.pop = function () {
+    return states.pop();
+  };
+  this.push = function (state) {
+    states.push(state);
+  };
+  this.top = function () {
+    return states[states.length - 1];
+  };
 };
+
+var EmptyState = function () {
+  this.name = "EmptyState";
+  this.render = function () {};
+  this.update = function () {};
+  this.onEnter = function () {};
+  this.onExit = function () {};
+};
+
+var StateStack = function () {
+  var states = new StateList();
+  states.push(new EmptyState());
+
+  this.update = function () {
+    var state = states.top();
+    if (state) {
+      state.update();
+    }
+  };
+
+  this.render = function () {
+    var state = states.top();
+    if (state) {
+      state.render();
+    }
+  };
+
+  this.push = function (state) {
+    states.push(state);
+    state.onEnter();
+  };
+  this.pop = function () {
+    var state = states.top();
+    state.onExit();
+    return states.pop();
+  };
+
+  this.pause = function () {
+    var state = states.top();
+    if (state.onPause) {
+      state.onPause();
+    }
+  };
+
+  this.resume = function () {
+    var state = states.top();
+    if (state.onResume) {
+      state.onResume();
+    }
+  };
+};
+
 const ASPECT_CORRECT = 80;
 const height = window.innerHeight / ASPECT_CORRECT;
 const width = window.innerWidth / ASPECT_CORRECT;
 
-class Object$1 {
-  constructor(name, x, y, w, h, color) {
-    const geometry = new BoxGeometry(w, h, 1);
-    const material = new MeshBasicMaterial({ color: color });
-    this.cube = new Mesh(geometry, material);
-    this.cube.position.x = x;
-    this.cube.position.y = y;
-    this.name = name;
-    this.w = w;
-    this.h = h;
-  }
+// file: setup.js
+var MenuState = function () {
+  this.name = "Menu State"; // Just to identify the State
+  this.update = function () {};
+  this.render = function () {};
+  this.onEnter = function () {
+    document.getElementById("menu").hidden = false;
+    window.onkeydown = function (e) {
+      if (e.key == "Enter") {
+        window.getGameInstance().pop();
+      }
+      //console.log("Pressed: ", e.key);
+    };
+  };
+  this.onExit = function () {
+    document.getElementById("menu").hidden = true;
+    window.onkeydown = null;
+  };
+};
 
-  move_by(dx, dy) {
-    if (
-      this.cube.position.x + dx + this.w / 2 > width / 2 ||
-      this.cube.position.x + dx - this.w / 2 < width / -2
-    ) {
-      this.onCollision(TIPO_COLISAO.VERTICAL);
-      return;
-    }
-    if (
-      this.cube.position.y + dy + this.h / 2 > height / 2 ||
-      this.cube.position.y + dy - this.h / 2 < height / -2
-    ) {
-      this.onCollision(TIPO_COLISAO.HORIZONTAL);
-      return;
-    }
-
-    this.cube.position.x += dx;
-    this.cube.position.y += dy;
-  }
-  add_scene(scene) {
-    scene.add(this.cube);
-  }
-  update() {}
-  onCollision(tipo) {
-    console.log(this.name, "Colidiu com a", tipo);
-  }
-}
-
-class ObjectComFisica extends Object$1 {
-  constructor(name, x, y, w, h, color, vx0, vy0) {
-    super(name, x, y, w, h, color);
-    this.vx = vx0;
-    this.vy = vy0;
-  }
-
-  update() {
-    super.update();
-    this.move_by(this.vx, this.vy);
-  }
-}
-
-class Bola extends ObjectComFisica {
-  update() {
-    super.update();
-  }
-
-  onCollision(tipo) {
-    if (tipo == tipo) {
-      this.vy *= -1;
-    }
-  }
-}
-
-// Inicializar as coisas (1 vez)
-const world = {
+var Game = {
   scene: null,
   camera: null,
   renderer: null,
-  object: new Object$1("Cubo", 0, 0, 1, 3, 0xe0d055),
-  ball: new Bola("Ball", 0, 0, 1, 1, 0xffffff, 0.003, -0.05),
+
+  gameMode: new StateStack(),
+
+  update: function () {
+    this.gameMode.update();
+    this.gameMode.render();
+  },
+
+  startGame: function () {
+    this.gameMode.push(new MenuState());
+  },
+
+  setupThree: function () {
+    this.scene = new Scene();
+    this.camera = new OrthographicCamera(
+      width / -2,
+      width / 2,
+      height / 2,
+      height / -2,
+      0.1,
+      1000
+    );
+    this.camera.position.z = 5;
+    // document.onkeydown = handle_keys;
+    this.renderer = new WebGLRenderer();
+    this.renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(this.renderer.domElement);
+  },
+
+  animate: function () {
+    requestAnimationFrame(() => this.animate());
+    this.update();
+  },
+
+  init: function () {
+    this.setupThree();
+    this.startGame();
+    this.animate();
+  },
 };
-init();
-// Animar as coisas (RECURSIVA)
-animate();
 
-function init() {
-  world.scene = new Scene();
-  world.camera = new OrthographicCamera(
-    width / -2,
-    width / 2,
-    height / 2,
-    height / -2,
-    0.1,
-    1000
-  );
+window.onload = function () {
+  window.getGameInstance = function () {
+    return Game.gameMode;
+  };
+  window.getScene = function () {
+    return Game.scene;
+  };
+  Game.init();
+};
 
-  world.camera.position.z = 5;
+// Inicializar as coisas (1 vez)
 
-  document.onkeydown = handle_keys;
+// const world = {
+//   object: new Object("Cubo", 0, 0, 1, 3, 0xe0d055),
+//   ball: new Bola("Ball", 0, 0, 1, 1, 0xffffff, 0.003, -0.05),
+// };
 
-  initObjects();
+// function initObjects() {
+//   world.object.add_scene(world.scene);
+//   world.ball.add_scene(world.scene);
+// }
 
-  world.renderer = new WebGLRenderer();
-  world.renderer.setSize(window.innerWidth, window.innerHeight);
-  document.body.appendChild(world.renderer.domElement);
-}
+// function animate() {
+//   requestAnimationFrame(animate);
 
-function initObjects() {
-  world.object.add_scene(world.scene);
-  world.ball.add_scene(world.scene);
-}
+//   // world.object.cube.rotation.x += 0.01;
+//   // world.object.cube.rotation.z += 0.07;
+//   updateObjects();
 
-function animate() {
-  requestAnimationFrame(animate);
+//   world.renderer.render(world.scene, world.camera);
+// }
 
-  // world.object.cube.rotation.x += 0.01;
-  // world.object.cube.rotation.z += 0.07;
-  updateObjects();
+// function updateObjects() {
+//   world.object.update();
+//   world.ball.update();
+// }
 
-  world.renderer.render(world.scene, world.camera);
-}
+// function handle_keys(event) {
+//   switch (event.key) {
+//     case "q":
+//       console.log("Q");
+//       break;
+//     case "ArrowUp":
+//       world.object.move_by(0, 0.1);
+//       break;
 
-function updateObjects() {
-  world.object.update();
-  world.ball.update();
-}
+//     case "ArrowDown":
+//       world.object.move_by(0, -0.1);
+//       break;
 
-function handle_keys(event) {
-  switch (event.key) {
-    case "q":
-      console.log("Q");
-      break;
-    case "ArrowUp":
-      world.object.move_by(0, 0.1);
-      break;
+//     case "ArrowRight":
+//       world.object.move_by(0.1, 0);
+//       break;
 
-    case "ArrowDown":
-      world.object.move_by(0, -0.1);
-      break;
-
-    case "ArrowRight":
-      world.object.move_by(0.1, 0);
-      break;
-
-    case "ArrowLeft":
-      world.object.move_by(-0.1, 0);
-      break;
-  }
-}
+//     case "ArrowLeft":
+//       world.object.move_by(-0.1, 0);
+//       break;
+//   }
+// }
