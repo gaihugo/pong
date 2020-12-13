@@ -44848,7 +44848,7 @@ const TIPO_COLISAO = {
   BOLA: "bola",
   BARRA: "barra",
 };
-const ASPECT_CORRECT = 80;
+const ASPECT_CORRECT = 15;
 const height = window.innerHeight / ASPECT_CORRECT;
 const width = window.innerWidth / ASPECT_CORRECT;
 
@@ -44906,30 +44906,77 @@ class ObjectComFisica extends Object$1 {
 }
 
 class Bola extends ObjectComFisica {
+  constructor() {
+    super("Bola", 0, 0, 1, 1, 0xed2828, 0.23, -0.5);
+  }
+
   update() {
     super.update();
   }
 
   onCollision(tipo) {
-    if (tipo == tipo) {
+    if (tipo == TIPO_COLISAO.HORIZONTAL) {
       this.vy *= -1;
     }
   }
 }
 
+const ALTURA = 10;
+const LARGURA = 3;
+
+const LADO = {
+  ESQUERDA: -1,
+  DIREITA: 1,
+};
+
+class Remo extends Object$1 {
+  constructor(lado) {
+    super(
+      "Remo " + lado,
+      (width / 2) * lado + 4 * -lado,
+      0,
+      LARGURA,
+      ALTURA,
+      0xffffff
+    );
+
+    this.lado = lado;
+  }
+}
+
+const OBJETOS = {
+  BOLA: 0,
+  REMO_ESQ: 1,
+  REMO_DIR: 2,
+};
+
 var MenuState = function () {
   this.name = "Game State"; // Just to identify the State
+  this.objetos = [];
   this.update = function () {
-    this.ball.update();
+    var dt = 10;
+    this.objetos.forEach((obj) => {
+      obj.update(dt, this.objetos);
+    });
   };
   this.render = function () {};
   this.onEnter = function () {
     window.onkeydown = function (e) {};
-    this.ball = new Bola("Ball", 0, 0, 1, 1, 0xffffff, 0.003, -0.05);
-    this.ball.add_scene(window.getScene());
+    this.createObjs();
   };
   this.onExit = function () {
     window.onkeydown = null;
+  };
+  this.createObjs = function () {
+    this.criarObj(OBJETOS.BOLA, new Bola());
+    this.criarObj(OBJETOS.REMO_DIR, new Remo(LADO.DIREITA));
+    this.criarObj(OBJETOS.REMO_ESQ, new Remo(LADO.ESQUERDA));
+  };
+
+  this.criarObj = function (id, obj) {
+    this.objetos[id] = obj;
+    this.objetos[id].id = id;
+    this.objetos[id].add_scene(window.getScene());
   };
 };
 
