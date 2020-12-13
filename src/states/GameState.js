@@ -13,13 +13,34 @@ var MenuState = function () {
   this.update = function () {
     var dt = 10;
     this.objetos.forEach((obj) => {
-      obj.update(dt, this.objetos);
+      obj.update(10, this.objetos);
     });
   };
   this.render = function () {};
   this.onEnter = function () {
-    window.onkeydown = function (e) {};
     this.createObjs();
+    window.onkeydown = (e) => {
+      console.log("Clicou", e.key);
+      switch (e.key) {
+        case "w":
+          this.objetos[OBJETOS.REMO_ESQ].move_by(0, 1);
+          break;
+        case "s":
+          this.objetos[OBJETOS.REMO_ESQ].move_by(0, -1);
+          break;
+
+        case "ArrowUp":
+          this.objetos[OBJETOS.REMO_DIR].move_by(0, 1);
+          break;
+
+        case "ArrowDown":
+          this.objetos[OBJETOS.REMO_DIR].move_by(0, -1);
+          break;
+
+        default:
+          break;
+      }
+    };
   };
   this.onExit = function () {
     window.onkeydown = null;

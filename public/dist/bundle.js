@@ -44855,8 +44855,8 @@ const width = window.innerWidth / ASPECT_CORRECT;
 class Object$1 {
   constructor(name, x, y, w, h, color) {
     const geometry = new BoxGeometry(w, h, 1);
-    const material = new MeshBasicMaterial({ color: color });
-    this.cube = new Mesh(geometry, material);
+    this.material = new MeshBasicMaterial({ color: color });
+    this.cube = new Mesh(geometry, this.material);
     this.cube.position.x = x;
     this.cube.position.y = y;
     this.name = name;
@@ -44886,7 +44886,38 @@ class Object$1 {
   add_scene(scene) {
     scene.add(this.cube);
   }
-  update() {}
+  update(dt, objetos) {
+    // console.log(dt);
+    objetos.forEach((obj) => {
+      if (obj.id != this.id) {
+        var rect1 = {
+          x: this.cube.position.x - this.w / 2,
+          y: this.cube.position.y - this.h / 2,
+          width: this.w,
+          height: this.h,
+        };
+        var rect2 = {
+          x: obj.cube.position.x - obj.w / 2,
+          y: obj.cube.position.y - obj.h / 2,
+          width: obj.w,
+          height: obj.h,
+        };
+
+        if (
+          rect1.x < rect2.x + rect2.width &&
+          rect1.x + rect1.width > rect2.x &&
+          rect1.y < rect2.y + rect2.height &&
+          rect1.y + rect1.height > rect2.y
+        ) {
+          if (obj.id == 0) {
+            this.onCollision(TIPO_COLISAO.BOLA);
+          } else {
+            this.onCollision(TIPO_COLISAO.BARRA);
+          }
+        }
+      }
+    });
+  }
   onCollision(tipo) {
     console.log(this.name, "Colidiu com a", tipo);
   }
@@ -44899,24 +44930,29 @@ class ObjectComFisica extends Object$1 {
     this.vy = vy0;
   }
 
-  update() {
-    super.update();
+  update(dt, objetos) {
+    super.update(dt, objetos);
     this.move_by(this.vx, this.vy);
   }
 }
 
 class Bola extends ObjectComFisica {
   constructor() {
-    super("Bola", 0, 0, 1, 1, 0xed2828, 0.23, -0.5);
+    super("Bola", 0, 0, 1, 1, 0xed2828, 0.23, -0.2);
   }
 
-  update() {
-    super.update();
+  update(dt, objetos) {
+    super.update(dt, objetos);
   }
 
   onCollision(tipo) {
     if (tipo == TIPO_COLISAO.HORIZONTAL) {
       this.vy *= -1;
+    }
+    // console.log("COLISSÂO ", tipo);
+    if (tipo == TIPO_COLISAO.BARRA) {
+      // this.material.color = 0x28ed28;
+      this.vx *= -1;
     }
   }
 }
@@ -44954,15 +44990,32 @@ var MenuState = function () {
   this.name = "Game State"; // Just to identify the State
   this.objetos = [];
   this.update = function () {
-    var dt = 10;
     this.objetos.forEach((obj) => {
-      obj.update(dt, this.objetos);
+      obj.update(10, this.objetos);
     });
   };
   this.render = function () {};
   this.onEnter = function () {
-    window.onkeydown = function (e) {};
     this.createObjs();
+    window.onkeydown = (e) => {
+      console.log("Clicou", e.key);
+      switch (e.key) {
+        case "w":
+          this.objetos[OBJETOS.REMO_ESQ].move_by(0, 1);
+          break;
+        case "s":
+          this.objetos[OBJETOS.REMO_ESQ].move_by(0, -1);
+          break;
+
+        case "ArrowUp":
+          this.objetos[OBJETOS.REMO_DIR].move_by(0, 1);
+          break;
+
+        case "ArrowDown":
+          this.objetos[OBJETOS.REMO_DIR].move_by(0, -1);
+          break;
+      }
+    };
   };
   this.onExit = function () {
     window.onkeydown = null;

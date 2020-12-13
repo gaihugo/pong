@@ -7,8 +7,8 @@ export default class ObjectComFisica extends Object {
     this.vy = vy0;
   }
 
-  update() {
-    super.update();
+  update(dt, objetos) {
+    super.update(dt, objetos);
     this.move_by(this.vx, this.vy);
   }
 }
