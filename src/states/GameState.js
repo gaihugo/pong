@@ -11,7 +11,6 @@ var MenuState = function () {
   this.name = "Game State"; // Just to identify the State
   this.objetos = [];
   this.update = function () {
-    var dt = 10;
     this.objetos.forEach((obj) => {
       obj.update(10, this.objetos);
     });

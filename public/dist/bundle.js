@@ -44938,7 +44938,7 @@ class ObjectComFisica extends Object$1 {
 
 class Bola extends ObjectComFisica {
   constructor() {
-    super("Bola", 0, 0, 1, 1, 0xed2828, 0.23, -0.2);
+    super("Bola", 0, 0, 1, 1, 0xed2828, 10, -0.2);
   }
 
   update(dt, objetos) {
