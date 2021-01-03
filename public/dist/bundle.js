@@ -44991,6 +44991,8 @@ class Bola extends ObjectComFisica {
     this.cube.position.x = 0;
     this.cube.position.y = 0;
     this.vx *= -1;
+
+    // TODO Parar a bola por um periodo de tempo
   }
 }
 
@@ -44999,6 +45001,11 @@ const OBJETOS = {
   REMO_ESQ: 1,
   REMO_DIR: 2,
 };
+
+function updateScore(esq, dir) {
+  document.getElementById("score-esq").textContent = esq;
+  document.getElementById("score-dir").textContent = dir;
+}
 
 var MenuState = function () {
   this.name = "Game State"; // Just to identify the State
@@ -45014,6 +45021,7 @@ var MenuState = function () {
   this.render = function () {};
   this.onEnter = function () {
     this.createObjs();
+    document.getElementById("placar").hidden = false;
     window.onkeydown = (e) => {
       switch (e.key) {
         case "w":
@@ -45035,6 +45043,7 @@ var MenuState = function () {
   };
   this.onExit = function () {
     window.onkeydown = null;
+    document.getElementById("placar").hidden = true;
   };
 
   this.giveVictory = (winner) => {
@@ -45043,6 +45052,7 @@ var MenuState = function () {
     } else {
       this.scoreEsq++;
     }
+    updateScore(this.scoreEsq, this.scoreDir);
 
     this.objetos[OBJETOS.BOLA].restart();
 
