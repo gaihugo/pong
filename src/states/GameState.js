@@ -18,7 +18,11 @@ var MenuState = function () {
   this.scoreEsq = 0;
   this.scoreDir = 0;
 
+  this.paused = false;
+
   this.update = function (dt) {
+    if (this.paused) return;
+
     this.objetos.forEach((obj) => {
       obj.update(dt, this.objetos);
     });
@@ -30,18 +34,23 @@ var MenuState = function () {
     window.onkeydown = (e) => {
       switch (e.key) {
         case "w":
-          this.objetos[OBJETOS.REMO_ESQ].move_by(0, 1);
+          if (!this.paused) this.objetos[OBJETOS.REMO_ESQ].move_by(0, 1);
           break;
         case "s":
-          this.objetos[OBJETOS.REMO_ESQ].move_by(0, -1);
+          if (!this.paused) this.objetos[OBJETOS.REMO_ESQ].move_by(0, -1);
           break;
 
         case "ArrowUp":
-          this.objetos[OBJETOS.REMO_DIR].move_by(0, 1);
+          if (!this.paused) this.objetos[OBJETOS.REMO_DIR].move_by(0, 1);
           break;
 
         case "ArrowDown":
-          this.objetos[OBJETOS.REMO_DIR].move_by(0, -1);
+          if (!this.paused) this.objetos[OBJETOS.REMO_DIR].move_by(0, -1);
+          break;
+
+        case "Escape":
+          this.paused = !this.paused;
+          console.log(this.paused);
           break;
 
         default:
