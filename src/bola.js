@@ -37,6 +37,15 @@ export default class Bola extends ObjectComFisica {
     this.cube.position.y = 0;
     this.vx *= -1;
 
-    // TODO Parar a bola por um periodo de tempo
+    let vx = this.vx,
+      vy = this.vy;
+
+    this.vx = 0;
+    this.vy = 0;
+
+    setTimeout(() => {
+      this.vx = vx;
+      this.vy = vy;
+    }, 700);
   }
 }
