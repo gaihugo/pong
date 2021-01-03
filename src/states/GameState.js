@@ -31,12 +31,29 @@ var MenuState = function () {
   this.onEnter = function () {
     this.createObjs();
     document.getElementById("placar").hidden = false;
+
+    this.music = new Audio("audio/GAME.mp3");
+    this.victoryMusic = new Audio("audio/VICTORY.mp3");
+    this.victoryMusic.volume = 0.5;
+    this.music.play();
+    this.music.loop = true;
+    this.music.volume = 0.2;
+
     window.onkeydown = (e) => {
       switch (e.key) {
         case "w":
           if (!this.paused) this.objetos[OBJETOS.REMO_ESQ].move_by(0, 1);
           break;
+
         case "s":
+          if (!this.paused) this.objetos[OBJETOS.REMO_ESQ].move_by(0, -1);
+          break;
+
+        case "W":
+          if (!this.paused) this.objetos[OBJETOS.REMO_ESQ].move_by(0, 1);
+          break;
+
+        case "S":
           if (!this.paused) this.objetos[OBJETOS.REMO_ESQ].move_by(0, -1);
           break;
 
@@ -51,6 +68,7 @@ var MenuState = function () {
         case "Escape":
           this.paused = !this.paused;
           console.log(this.paused);
+          // TODO Return to menu when finished
           break;
 
         default:
@@ -61,6 +79,7 @@ var MenuState = function () {
   this.onExit = function () {
     window.onkeydown = null;
     document.getElementById("placar").hidden = true;
+    document.getElementById("message").hidden = true;
   };
 
   this.giveVictory = (winner) => {
@@ -73,7 +92,23 @@ var MenuState = function () {
 
     this.objetos[OBJETOS.BOLA].restart();
 
-    // TODO Conferir se algum lado venceu (chegou a 25 pts.)
+    // Conferir se algum lado venceu (chegou a 25 pts.)
+    if (this.scoreDir >= 15) {
+      this.paused = true;
+      document.getElementById("message").textContent = "Right Wins!!";
+      document.getElementById("message").hidden = false;
+      this.music.pause();
+      this.victoryMusic.play();
+
+      // TODO Bola deve desaparecer
+    }
+    if (this.scoreEsq >= 15) {
+      this.paused = true;
+      document.getElementById("message").textContent = "Left Wins!!";
+      document.getElementById("message").hidden = false;
+      this.music.pause();
+      this.victoryMusic.play();
+    }
   };
 
   this.createObjs = function () {

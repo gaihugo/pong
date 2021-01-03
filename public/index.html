@@ -35,6 +35,18 @@
         font-size: 6rem;
         font-family: "Press Start 2P", cursive;
       }
+
+      #message {
+        position: absolute;
+        top: 40%;
+        width: 100%;
+        text-align: center;
+        z-index: 100;
+        color: White;
+
+        font-size: 6rem;
+        font-family: "Press Start 2P", cursive;
+      }
     </style>
   </head>
   <body>
@@ -44,6 +56,7 @@
       x
       <span id="score-dir">0</span>
     </div>
+    <div id="message" hidden="true">Left Wins!!!</div>
     <script src="dist/bundle.js"></script>
   </body>
 </html>
