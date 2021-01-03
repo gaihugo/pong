@@ -7,13 +7,14 @@ var Game = {
   scene: null,
   camera: null,
   renderer: null,
+  lastTime: null,
 
   gameMode: new StateStack(),
 
-  update: function () {
-    this.gameMode.update();
-    this.gameMode.render();
-    this.render();
+  update: function (dt) {
+    this.gameMode.update(dt);
+    this.gameMode.render(dt);
+    this.render(dt);
   },
 
   render: function () {
@@ -41,15 +42,23 @@ var Game = {
     document.body.appendChild(this.renderer.domElement);
   },
 
-  animate: function () {
-    requestAnimationFrame(() => this.animate());
-    this.update();
+  animate: function (dt) {
+    requestAnimationFrame((now) => {
+      if (!this.lastTime) {
+        this.lastTime = now;
+      }
+
+      this.animate(this.lastTime - now);
+
+      this.lastTime = now;
+    });
+    this.update(dt);
   },
 
   init: function () {
     this.setupThree();
     this.startGame();
-    this.animate();
+    this.animate(0.01);
   },
 };
 

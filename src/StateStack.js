@@ -5,10 +5,10 @@ export var StateStack = function () {
   var states = new StateList();
   states.push(new EmptyState());
 
-  this.update = function () {
+  this.update = function (dt) {
     var state = states.top();
     if (state) {
-      state.update();
+      state.update(dt);
     }
   };
 

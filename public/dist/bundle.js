@@ -44801,10 +44801,10 @@ var StateStack = function () {
   var states = new StateList();
   states.push(new EmptyState());
 
-  this.update = function () {
+  this.update = function (dt) {
     var state = states.top();
     if (state) {
-      state.update();
+      state.update(dt);
     }
   };
 
@@ -44918,9 +44918,7 @@ class Object$1 {
       }
     });
   }
-  onCollision(tipo) {
-    console.log(this.name, "Colidiu com a", tipo);
-  }
+  onCollision(tipo) {}
 }
 
 class ObjectComFisica extends Object$1 {
@@ -44932,32 +44930,11 @@ class ObjectComFisica extends Object$1 {
 
   update(dt, objetos) {
     super.update(dt, objetos);
-    this.move_by(this.vx, this.vy);
+    this.move_by(this.vx * dt, this.vy * dt);
   }
 }
 
-class Bola extends ObjectComFisica {
-  constructor() {
-    super("Bola", 0, 0, 1, 1, 0xed2828, 10, -0.2);
-  }
-
-  update(dt, objetos) {
-    super.update(dt, objetos);
-  }
-
-  onCollision(tipo) {
-    if (tipo == TIPO_COLISAO.HORIZONTAL) {
-      this.vy *= -1;
-    }
-    // console.log("COLISSÂO ", tipo);
-    if (tipo == TIPO_COLISAO.BARRA) {
-      // this.material.color = 0x28ed28;
-      this.vx *= -1;
-    }
-  }
-}
-
-const ALTURA = 10;
+const ALTURA = 7;
 const LARGURA = 3;
 
 const LADO = {
@@ -44980,6 +44957,43 @@ class Remo extends Object$1 {
   }
 }
 
+class Bola extends ObjectComFisica {
+  constructor(giveVictory) {
+    super("Bola", 0, 0, 1.5, 1.5, 0xed2828, 0.0152, -0.018);
+    this.giveVictory = giveVictory;
+  }
+
+  update(dt, objetos) {
+    super.update(dt, objetos);
+  }
+
+  onCollision(tipo) {
+    if (tipo == TIPO_COLISAO.HORIZONTAL) {
+      this.vy *= -1;
+    }
+    if (tipo == TIPO_COLISAO.BARRA) {
+      this.vx *= -1;
+    }
+
+    if (tipo == TIPO_COLISAO.VERTICAL) {
+      // Identificar o lado que venceu
+      if (this.cube.position.x > 0) {
+        // X é positivo -> bola direita -> vitoria da esquerda
+        this.giveVictory(LADO.ESQUERDA);
+      } else {
+        // X é negativo -> bola esquerda -> vitoria da direita
+        this.giveVictory(LADO.DIREITA);
+      }
+    }
+  }
+
+  restart() {
+    this.cube.position.x = 0;
+    this.cube.position.y = 0;
+    this.vx *= -1;
+  }
+}
+
 const OBJETOS = {
   BOLA: 0,
   REMO_ESQ: 1,
@@ -44989,16 +45003,18 @@ const OBJETOS = {
 var MenuState = function () {
   this.name = "Game State"; // Just to identify the State
   this.objetos = [];
-  this.update = function () {
+  this.scoreEsq = 0;
+  this.scoreDir = 0;
+
+  this.update = function (dt) {
     this.objetos.forEach((obj) => {
-      obj.update(10, this.objetos);
+      obj.update(dt, this.objetos);
     });
   };
   this.render = function () {};
   this.onEnter = function () {
     this.createObjs();
     window.onkeydown = (e) => {
-      console.log("Clicou", e.key);
       switch (e.key) {
         case "w":
           this.objetos[OBJETOS.REMO_ESQ].move_by(0, 1);
@@ -45020,8 +45036,21 @@ var MenuState = function () {
   this.onExit = function () {
     window.onkeydown = null;
   };
+
+  this.giveVictory = (winner) => {
+    if (LADO.DIREITA === winner) {
+      this.scoreDir++;
+    } else {
+      this.scoreEsq++;
+    }
+
+    this.objetos[OBJETOS.BOLA].restart();
+
+    // TODO Conferir se algum lado venceu (chegou a 25 pts.)
+  };
+
   this.createObjs = function () {
-    this.criarObj(OBJETOS.BOLA, new Bola());
+    this.criarObj(OBJETOS.BOLA, new Bola(this.giveVictory));
     this.criarObj(OBJETOS.REMO_DIR, new Remo(LADO.DIREITA));
     this.criarObj(OBJETOS.REMO_ESQ, new Remo(LADO.ESQUERDA));
   };
@@ -45061,13 +45090,14 @@ var Game = {
   scene: null,
   camera: null,
   renderer: null,
+  lastTime: null,
 
   gameMode: new StateStack(),
 
-  update: function () {
-    this.gameMode.update();
-    this.gameMode.render();
-    this.render();
+  update: function (dt) {
+    this.gameMode.update(dt);
+    this.gameMode.render(dt);
+    this.render(dt);
   },
 
   render: function () {
@@ -45095,15 +45125,23 @@ var Game = {
     document.body.appendChild(this.renderer.domElement);
   },
 
-  animate: function () {
-    requestAnimationFrame(() => this.animate());
-    this.update();
+  animate: function (dt) {
+    requestAnimationFrame((now) => {
+      if (!this.lastTime) {
+        this.lastTime = now;
+      }
+
+      this.animate(this.lastTime - now);
+
+      this.lastTime = now;
+    });
+    this.update(dt);
   },
 
   init: function () {
     this.setupThree();
     this.startGame();
-    this.animate();
+    this.animate(0.01);
   },
 };
 

@@ -67,7 +67,5 @@ export default class Object {
       }
     });
   }
-  onCollision(tipo) {
-    console.log(this.name, "Colidiu com a", tipo);
-  }
+  onCollision(tipo) {}
 }

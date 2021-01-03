@@ -1,7 +1,7 @@
 import Object from "./Object";
 import { width, height } from "./consts";
 
-const ALTURA = 10;
+const ALTURA = 7;
 const LARGURA = 3;
 
 export const LADO = {

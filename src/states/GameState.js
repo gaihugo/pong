@@ -10,16 +10,18 @@ const OBJETOS = {
 var MenuState = function () {
   this.name = "Game State"; // Just to identify the State
   this.objetos = [];
-  this.update = function () {
+  this.scoreEsq = 0;
+  this.scoreDir = 0;
+
+  this.update = function (dt) {
     this.objetos.forEach((obj) => {
-      obj.update(10, this.objetos);
+      obj.update(dt, this.objetos);
     });
   };
   this.render = function () {};
   this.onEnter = function () {
     this.createObjs();
     window.onkeydown = (e) => {
-      console.log("Clicou", e.key);
       switch (e.key) {
         case "w":
           this.objetos[OBJETOS.REMO_ESQ].move_by(0, 1);
@@ -44,8 +46,21 @@ var MenuState = function () {
   this.onExit = function () {
     window.onkeydown = null;
   };
+
+  this.giveVictory = (winner) => {
+    if (LADO.DIREITA === winner) {
+      this.scoreDir++;
+    } else {
+      this.scoreEsq++;
+    }
+
+    this.objetos[OBJETOS.BOLA].restart();
+
+    // TODO Conferir se algum lado venceu (chegou a 25 pts.)
+  };
+
   this.createObjs = function () {
-    this.criarObj(OBJETOS.BOLA, new Bola());
+    this.criarObj(OBJETOS.BOLA, new Bola(this.giveVictory));
     this.criarObj(OBJETOS.REMO_DIR, new Remo(LADO.DIREITA));
     this.criarObj(OBJETOS.REMO_ESQ, new Remo(LADO.ESQUERDA));
   };
