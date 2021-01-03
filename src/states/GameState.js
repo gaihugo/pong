@@ -19,6 +19,7 @@ var MenuState = function () {
   this.scoreDir = 0;
 
   this.paused = false;
+  this.finished = false;
 
   this.update = function (dt) {
     if (this.paused) return;
@@ -67,8 +68,9 @@ var MenuState = function () {
 
         case "Escape":
           this.paused = !this.paused;
-          console.log(this.paused);
-          // TODO Return to menu when finished
+          if (this.finished) {
+            window.getGameInstance().pop();
+          }
           break;
 
         default:
@@ -80,6 +82,12 @@ var MenuState = function () {
     window.onkeydown = null;
     document.getElementById("placar").hidden = true;
     document.getElementById("message").hidden = true;
+
+    this.objetos.forEach((obj) => {
+      window.getScene().remove(obj.cube);
+    });
+
+    updateScore(0, 0);
   };
 
   this.giveVictory = (winner) => {
@@ -95,19 +103,22 @@ var MenuState = function () {
     // Conferir se algum lado venceu (chegou a 25 pts.)
     if (this.scoreDir >= 15) {
       this.paused = true;
+      this.finished = true;
       document.getElementById("message").textContent = "Right Wins!!";
       document.getElementById("message").hidden = false;
       this.music.pause();
       this.victoryMusic.play();
 
-      // TODO Bola deve desaparecer
+      window.getScene().remove(this.objetos[OBJETOS.BOLA].cube);
     }
     if (this.scoreEsq >= 15) {
       this.paused = true;
+      this.finished = true;
       document.getElementById("message").textContent = "Left Wins!!";
       document.getElementById("message").hidden = false;
       this.music.pause();
       this.victoryMusic.play();
+      window.getScene().remove(this.objetos[OBJETOS.BOLA].cube);
     }
   };
 

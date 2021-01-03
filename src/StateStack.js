@@ -24,6 +24,7 @@ export var StateStack = function () {
     states.push(state);
     state.onEnter();
   };
+
   this.pop = function () {
     var state = states.top();
     state.onExit();
@@ -40,8 +41,6 @@ export var StateStack = function () {
 
   this.resume = function () {
     var state = states.top();
-    if (state.onResume) {
-      state.onResume();
-    }
+    state.onEnter();
   };
 };
